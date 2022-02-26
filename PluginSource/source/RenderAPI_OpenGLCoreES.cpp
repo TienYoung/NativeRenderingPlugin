@@ -1,6 +1,8 @@
 #include "RenderAPI.h"
 #include "PlatformBase.h"
 
+#include "Renderer_Optix7.h"
+
 // OpenGL Core profile (desktop) or OpenGL ES (mobile) implementation of RenderAPI.
 // Supports several flavors: Core, ES2, ES3
 
@@ -27,12 +29,11 @@
 #	error Unknown platform
 #endif
 
-
 class RenderAPI_OpenGLCoreES : public RenderAPI
 {
 public:
 	RenderAPI_OpenGLCoreES(UnityGfxRenderer apiType);
-	virtual ~RenderAPI_OpenGLCoreES() { }
+	virtual ~RenderAPI_OpenGLCoreES() { Cleanup(); }
 
 	virtual void ProcessDeviceEvent(UnityGfxDeviceEventType type, IUnityInterfaces* interfaces);
 
@@ -186,6 +187,7 @@ void RenderAPI_OpenGLCoreES::CreateResources()
 RenderAPI_OpenGLCoreES::RenderAPI_OpenGLCoreES(UnityGfxRenderer apiType)
 	: m_APIType(apiType)
 {
+	Init();
 }
 
 
@@ -273,7 +275,8 @@ void RenderAPI_OpenGLCoreES::EndModifyTexture(void* textureHandle, int textureWi
 	GLuint gltex = (GLuint)(size_t)(textureHandle);
 	// Update texture data, and free the memory buffer
 	glBindTexture(GL_TEXTURE_2D, gltex);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureWidth, textureHeight, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr);
+	//glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureWidth, textureHeight, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureWidth, textureHeight, GL_RGBA, GL_UNSIGNED_BYTE, Launch());
 	delete[](unsigned char*)dataPtr;
 }
 

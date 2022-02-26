@@ -63,8 +63,10 @@ public class UseRenderingPlugin : MonoBehaviour
 
 	private void CreateTextureAndPassToPlugin()
 	{
+		Screen.SetResolution(1920, 1080, false);
+
 		// Create a texture
-		Texture2D tex = new Texture2D(256,256,TextureFormat.ARGB32,false);
+		Texture2D tex = new Texture2D(512,384,TextureFormat.RGBA32,false);
 		// Set point filtering just so we can see the pixels clearly
 		tex.filterMode = FilterMode.Point;
 		// Call Apply() so it's actually uploaded to the GPU

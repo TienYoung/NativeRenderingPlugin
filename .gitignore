@@ -15,6 +15,7 @@ UnityProject/Library
 UnityProject/Temp
 UnityProject/UWP
 UnityProject/Logs
+UnityProject/Build
 
 PluginSource/build
 PluginSource/projects/Android/libs/*
