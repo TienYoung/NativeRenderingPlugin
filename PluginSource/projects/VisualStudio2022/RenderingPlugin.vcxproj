@@ -44,6 +44,12 @@
     <ClCompile Include="..\..\source\RenderingPlugin.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="..\..\source\Optix\draw_solid_color.cu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">nvcc -ptx -I "C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\include" -I "C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\SDK" --use_fast_math ../../source/Optix/%(Filename).cu -o $(OutputPath)%(Filename).ptx</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutputPath)%(Filename).ptx</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NVCC compiling cu file...</Message>
+    </CustomBuild>
     <None Include="..\..\source\RenderingPlugin.def" />
   </ItemGroup>
   <ItemGroup>
@@ -169,7 +175,7 @@ ENDLOCAL
       <AdditionalIncludeDirectories>../../;C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\include;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\lib\x64\cudart_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\lib\x64\cudart_static.lib;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\lib\x64\nvrtc.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>../../source/RenderingPlugin.def</ModuleDefinitionFile>

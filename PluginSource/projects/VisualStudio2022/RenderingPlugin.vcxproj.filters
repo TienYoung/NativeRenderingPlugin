@@ -47,11 +47,19 @@
     <Filter Include="gl3w">
       <UniqueIdentifier>{f00ad923-e825-43a2-b22c-b3380a3a8813}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Optix">
+      <UniqueIdentifier>{45d61de2-c8d2-46cc-bed1-0a84a08be49b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\source\RenderingPlugin.def" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\source\RenderAPI_Metal.mm" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\source\Optix\draw_solid_color.cu">
+      <Filter>Optix</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

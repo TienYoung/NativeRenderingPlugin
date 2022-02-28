@@ -7,13 +7,14 @@
 
 #include <cuda_runtime.h>
 
-
 #include <stdexcept>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <vector>
+
+#include <direct.h>
 
 //------------------------------------------------------------------------------
 //
@@ -237,8 +238,11 @@ void Init()
 		pipeline_compile_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_NONE;  // TODO: should be OPTIX_EXCEPTION_FLAG_STACK_OVERFLOW;
 		pipeline_compile_options.pipelineLaunchParamsVariableName = "params";
 
-		size_t      inputSize = 0;
-		std::fstream file("C:\\Users\\const\\Documents\\GitHub\\NativeRenderingPlugin\\PluginSource\\build\\x64\\Debug\\optixHello_generated_draw_solid_color.cu.ptx");
+		std::string currentPath(_getcwd(NULL, 0));
+		std::string filename = currentPath + "/../PluginSource/build/x64/Debug/draw_solid_color.ptx";
+
+		size_t inputSize = 0;
+		std::fstream file(filename);
 		std::string source(std::istreambuf_iterator<char>(file), {});
 		const char* input = source.c_str();
 		inputSize = source.size();
