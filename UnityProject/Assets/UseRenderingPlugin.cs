@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System;
 using System.Collections;
 using System.Runtime.InteropServices;
@@ -11,69 +12,45 @@ public class UseRenderingPlugin : MonoBehaviour
 	// one function in some active script.
 	// For this example, we'll call into plugin's SetTimeFromUnity
 	// function and pass the current time so the plugin can animate.
-
-#if (UNITY_IOS || UNITY_TVOS || UNITY_WEBGL) && !UNITY_EDITOR
-	[DllImport ("__Internal")]
-#else
 	[DllImport ("RenderingPlugin")]
-#endif
 	private static extern void SetTimeFromUnity(float t);
-
 
 	// We'll also pass native pointer to a texture in Unity.
 	// The plugin will fill texture data from native code.
-#if (UNITY_IOS || UNITY_TVOS || UNITY_WEBGL) && !UNITY_EDITOR
-	[DllImport ("__Internal")]
-#else
 	[DllImport ("RenderingPlugin")]
-#endif
 	private static extern void SetTextureFromUnity(System.IntPtr texture, int w, int h);
 
 	// We'll pass native pointer to the mesh vertex buffer.
 	// Also passing source unmodified mesh data.
 	// The plugin will fill vertex data from native code.
-#if (UNITY_IOS || UNITY_TVOS || UNITY_WEBGL) && !UNITY_EDITOR
-	[DllImport ("__Internal")]
-#else
 	[DllImport ("RenderingPlugin")]
-#endif
 	private static extern void SetMeshBuffersFromUnity (IntPtr vertexBuffer, int vertexCount, IntPtr sourceVertices, IntPtr sourceNormals, IntPtr sourceUVs);
 
-#if (UNITY_IOS || UNITY_TVOS || UNITY_WEBGL) && !UNITY_EDITOR
-	[DllImport ("__Internal")]
-#else
 	[DllImport("RenderingPlugin")]
-#endif
 	private static extern IntPtr GetRenderEventFunc();
-
-#if UNITY_WEBGL && !UNITY_EDITOR
-	[DllImport ("__Internal")]
-	private static extern void RegisterPlugin();
-#endif
 
 	IEnumerator Start()
 	{
-#if UNITY_WEBGL && !UNITY_EDITOR
-		RegisterPlugin();
-#endif
 		CreateTextureAndPassToPlugin();
 		SendMeshBuffersToPlugin();
 		yield return StartCoroutine("CallPluginAtEndOfFrames");
 	}
+
+	public RawImage OptixViewer;
 
 	private void CreateTextureAndPassToPlugin()
 	{
 		Screen.SetResolution(1920, 1080, false);
 
 		// Create a texture
-		Texture2D tex = new Texture2D(512,384,TextureFormat.RGBA32,false);
+		Texture2D tex = new Texture2D((int)OptixViewer.rectTransform.rect.width, (int)OptixViewer.rectTransform.rect.height, TextureFormat.RGBA32,false);
 		// Set point filtering just so we can see the pixels clearly
 		tex.filterMode = FilterMode.Point;
 		// Call Apply() so it's actually uploaded to the GPU
 		tex.Apply();
 
 		// Set texture onto our material
-		GetComponent<Renderer>().material.mainTexture = tex;
+		OptixViewer.texture = tex;
 
 		// Pass texture pointer to the plugin
 		SetTextureFromUnity (tex.GetNativeTexturePtr(), tex.width, tex.height);

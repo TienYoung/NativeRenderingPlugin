@@ -19,46 +19,22 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\gl3w\gl3w.h" />
-    <ClInclude Include="..\..\source\gl3w\glcorearb.h" />
-    <ClInclude Include="..\..\source\PlatformBase.h" />
+    <ClInclude Include="..\..\source\Optix\Exception.h" />
+    <ClInclude Include="..\..\source\Optix\RayTracing_Optix7.h" />
     <ClInclude Include="..\..\source\RenderAPI.h" />
-    <ClInclude Include="..\..\source\Renderer_Optix7.h" />
     <ClInclude Include="..\..\source\Unity\IUnityGraphics.h" />
-    <ClInclude Include="..\..\source\Unity\IUnityGraphicsD3D11.h" />
-    <ClInclude Include="..\..\source\Unity\IUnityGraphicsD3D12.h" />
-    <ClInclude Include="..\..\source\Unity\IUnityGraphicsD3D9.h" />
-    <ClInclude Include="..\..\source\Unity\IUnityGraphicsMetal.h" />
     <ClInclude Include="..\..\source\Unity\IUnityInterface.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\gl3w\gl3w.c" />
     <ClCompile Include="..\..\source\RenderAPI.cpp" />
-    <ClCompile Include="..\..\source\RenderAPI_D3D11.cpp" />
-    <ClCompile Include="..\..\source\RenderAPI_D3D12.cpp" />
     <ClCompile Include="..\..\source\RenderAPI_OpenGLCoreES.cpp" />
-    <ClCompile Include="..\..\source\RenderAPI_Vulkan.cpp">
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
-    </ClCompile>
     <ClCompile Include="..\..\source\RenderingPlugin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\source\Optix\draw_solid_color.cu">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">nvcc -ptx -I "C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\include" -I "C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\SDK" --use_fast_math ../../source/Optix/%(Filename).cu -o $(OutputPath)%(Filename).ptx</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutputPath)%(Filename).ptx</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NVCC compiling cu file...</Message>
     </CustomBuild>
     <None Include="..\..\source\RenderingPlugin.def" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\source\RenderAPI_Metal.mm">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F7CFEF5A-54BD-42E8-A59E-54ABAEB4EA9C}</ProjectGuid>
@@ -194,6 +170,12 @@ copy /Y "$(TargetPath)" "%TARGET_PLUGIN_PATH%\$(TargetFileName)"
 ENDLOCAL
 </Command>
     </PostBuildEvent>
+    <CustomBuild>
+      <AdditionalInputs>C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\builtin_types.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\channel_descriptor.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\crt\common_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\crt\device_double_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\crt\device_double_functions.hpp;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\crt\device_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\crt\device_functions.hpp;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\crt\host_config.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\crt\host_defines.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\crt\math_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\crt\math_functions.hpp;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\crt\sm_70_rt.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\crt\sm_70_rt.hpp;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\crt\sm_80_rt.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\crt\sm_80_rt.hpp;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\cuda_device_runtime_api.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\cuda_runtime.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\cuda_runtime_api.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\cuda_surface_types.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\cuda_texture_types.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\device_atomic_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\device_atomic_functions.hpp;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\device_launch_parameters.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\device_types.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\driver_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\driver_types.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\library_types.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_20_atomic_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_20_atomic_functions.hpp;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_20_intrinsics.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_20_intrinsics.hpp;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_30_intrinsics.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_30_intrinsics.hpp;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_32_atomic_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_32_atomic_functions.hpp;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_32_intrinsics.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_32_intrinsics.hpp;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_35_atomic_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_35_intrinsics.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_60_atomic_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_60_atomic_functions.hpp;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_61_intrinsics.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\sm_61_intrinsics.hpp;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\surface_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\surface_indirect_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\surface_types.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\texture_fetch_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\texture_indirect_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\texture_types.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\vector_functions.h;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\vector_functions.hpp;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\include\vector_types.h;C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\SDK\cuda\helpers.h;C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\SDK\optixTriangle\optixTriangle.h;C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\SDK\sutil\Preprocessor.h;C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\SDK\sutil\vec_math.h;C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\include\internal\optix_7_device_impl.h;C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\include\internal\optix_7_device_impl_exception.h;C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\include\internal\optix_7_device_impl_transformations.h;C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\include\optix.h;C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\include\optix_7_device.h;C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\include\optix_7_types.h;C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\include\optix_device.h;C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\SDK\build\optixTriangle\CMakeFiles\optixTriangle.dir\optixTriangle_generated_optixTriangle.cu.ptx.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Command>nvcc -ptx -I "C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\include" -I "C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.4.0\SDK" --use_fast_math ../../source/Optix/%(Filename).cu -o $(OutputPath)%(Filename).ptx</Command>
+      <Message>NVCC compiling cu file...</Message>
+      <Outputs>$(OutputPath)%(Filename).ptx</Outputs>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

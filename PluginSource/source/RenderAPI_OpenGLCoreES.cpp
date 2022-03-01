@@ -1,33 +1,15 @@
 #include "RenderAPI.h"
-#include "PlatformBase.h"
 
-#include "Renderer_Optix7.h"
+#include "Optix/RayTracing_Optix7.h"
 
 // OpenGL Core profile (desktop) or OpenGL ES (mobile) implementation of RenderAPI.
 // Supports several flavors: Core, ES2, ES3
 
-
-#if SUPPORT_OPENGL_UNIFIED
-
-
 #include <assert.h>
-#if UNITY_IOS || UNITY_TVOS
-#	include <OpenGLES/ES2/gl.h>
-#elif UNITY_ANDROID || UNITY_WEBGL || UNITY_EMBEDDED_LINUX
-#	include <GLES2/gl2.h>
-#elif UNITY_OSX
-#	include <OpenGL/gl3.h>
-#elif UNITY_WIN
 // On Windows, use gl3w to initialize and load OpenGL Core functions. In principle any other
 // library (like GLEW, GLFW etc.) can be used; here we use gl3w since it's simple and
 // straightforward.
-#	include "gl3w/gl3w.h"
-#elif UNITY_LINUX || UNITY_EMBEDDED_LINUX_GL
-#	define GL_GLEXT_PROTOTYPES
-#	include <GL/gl.h>
-#else
-#	error Unknown platform
-#endif
+#include <GL/gl3w.h>
 
 class RenderAPI_OpenGLCoreES : public RenderAPI
 {
@@ -92,11 +74,7 @@ enum VertexInputs
 	"	ocolor = color;\n"											\
 	"}\n"															\
 
-static const char* kGlesVProgTextGLES2 = VERTEX_SHADER_SRC("\n", "attribute", "varying");
-static const char* kGlesVProgTextGLES3 = VERTEX_SHADER_SRC("#version 300 es\n", "in", "out");
-#if SUPPORT_OPENGL_CORE
 static const char* kGlesVProgTextGLCore = VERTEX_SHADER_SRC("#version 150\n", "in", "out");
-#endif
 
 #undef VERTEX_SHADER_SRC
 
@@ -112,11 +90,7 @@ static const char* kGlesVProgTextGLCore = VERTEX_SHADER_SRC("#version 150\n", "i
 	"	" outVar " = ocolor;\n"						\
 	"}\n"											\
 
-static const char* kGlesFShaderTextGLES2 = FRAGMENT_SHADER_SRC("\n", "varying", "\n", "gl_FragColor");
-static const char* kGlesFShaderTextGLES3 = FRAGMENT_SHADER_SRC("#version 300 es\n", "in", "out lowp vec4 fragColor;\n", "fragColor");
-#if SUPPORT_OPENGL_CORE
 static const char* kGlesFShaderTextGLCore = FRAGMENT_SHADER_SRC("#version 150\n", "in", "out lowp vec4 fragColor;\n", "fragColor");
-#endif
 
 #undef FRAGMENT_SHADER_SRC
 
@@ -132,29 +106,13 @@ static GLuint CreateShader(GLenum type, const char* sourceText)
 
 void RenderAPI_OpenGLCoreES::CreateResources()
 {
-	// Create shaders
-	if (m_APIType == kUnityGfxRendererOpenGLES20)
+	if (m_APIType == kUnityGfxRendererOpenGLCore)
 	{
-		m_VertexShader = CreateShader(GL_VERTEX_SHADER, kGlesVProgTextGLES2);
-		m_FragmentShader = CreateShader(GL_FRAGMENT_SHADER, kGlesFShaderTextGLES2);
-	}
-	else if (m_APIType == kUnityGfxRendererOpenGLES30)
-	{
-		m_VertexShader = CreateShader(GL_VERTEX_SHADER, kGlesVProgTextGLES3);
-		m_FragmentShader = CreateShader(GL_FRAGMENT_SHADER, kGlesFShaderTextGLES3);
-	}
-#	if SUPPORT_OPENGL_CORE
-	else if (m_APIType == kUnityGfxRendererOpenGLCore)
-	{
-#		if UNITY_WIN
 		gl3wInit();
-#		endif
 
 		m_VertexShader = CreateShader(GL_VERTEX_SHADER, kGlesVProgTextGLCore);
 		m_FragmentShader = CreateShader(GL_FRAGMENT_SHADER, kGlesFShaderTextGLCore);
 	}
-#	endif // if SUPPORT_OPENGL_CORE
-
 
 	// Link shaders into a program and find uniform locations
 	m_Program = glCreateProgram();
@@ -162,10 +120,8 @@ void RenderAPI_OpenGLCoreES::CreateResources()
 	glBindAttribLocation(m_Program, kVertexInputColor, "color");
 	glAttachShader(m_Program, m_VertexShader);
 	glAttachShader(m_Program, m_FragmentShader);
-#	if SUPPORT_OPENGL_CORE
 	if (m_APIType == kUnityGfxRendererOpenGLCore)
 		glBindFragDataLocation(m_Program, 0, "fragColor");
-#	endif // if SUPPORT_OPENGL_CORE
 	glLinkProgram(m_Program);
 
 	GLint status = 0;
@@ -226,14 +182,11 @@ void RenderAPI_OpenGLCoreES::DrawSimpleTriangles(const float worldMatrix[16], in
 	glUniformMatrix4fv(m_UniformWorldMatrix, 1, GL_FALSE, worldMatrix);
 	glUniformMatrix4fv(m_UniformProjMatrix, 1, GL_FALSE, projectionMatrix);
 
-	// Core profile needs VAOs, setup one
-#	if SUPPORT_OPENGL_CORE
 	if (m_APIType == kUnityGfxRendererOpenGLCore)
 	{
 		glGenVertexArrays(1, &m_VertexArray);
 		glBindVertexArray(m_VertexArray);
 	}
-#	endif // if SUPPORT_OPENGL_CORE
 
 	// Bind a vertex buffer, and update data in it
 	const int kVertexSize = 12 + 4;
@@ -251,12 +204,10 @@ void RenderAPI_OpenGLCoreES::DrawSimpleTriangles(const float worldMatrix[16], in
 	glDrawArrays(GL_TRIANGLES, 0, triangleCount * 3);
 
 	// Cleanup VAO
-#	if SUPPORT_OPENGL_CORE
 	if (m_APIType == kUnityGfxRendererOpenGLCore)
 	{
 		glDeleteVertexArrays(1, &m_VertexArray);
 	}
-#	endif
 }
 
 
@@ -276,31 +227,23 @@ void RenderAPI_OpenGLCoreES::EndModifyTexture(void* textureHandle, int textureWi
 	// Update texture data, and free the memory buffer
 	glBindTexture(GL_TEXTURE_2D, gltex);
 	//glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureWidth, textureHeight, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureWidth, textureHeight, GL_RGBA, GL_UNSIGNED_BYTE, Launch());
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureWidth, textureHeight, GL_RGBA, GL_UNSIGNED_BYTE, Launch(textureWidth, textureHeight));
 	delete[](unsigned char*)dataPtr;
 }
 
 void* RenderAPI_OpenGLCoreES::BeginModifyVertexBuffer(void* bufferHandle, size_t* outBufferSize)
 {
-#	if SUPPORT_OPENGL_ES
-	return 0;
-#	else
 	glBindBuffer(GL_ARRAY_BUFFER, (GLuint)(size_t)bufferHandle);
 	GLint size = 0;
 	glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 	*outBufferSize = size;
 	void* mapped = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	return mapped;
-#	endif
 }
 
 
 void RenderAPI_OpenGLCoreES::EndModifyVertexBuffer(void* bufferHandle)
 {
-#	if !SUPPORT_OPENGL_ES
 	glBindBuffer(GL_ARRAY_BUFFER, (GLuint)(size_t)bufferHandle);
 	glUnmapBuffer(GL_ARRAY_BUFFER);
-#	endif
 }
-
-#endif // #if SUPPORT_OPENGL_UNIFIED
