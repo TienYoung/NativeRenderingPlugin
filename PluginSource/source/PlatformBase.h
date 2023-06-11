@@ -4,6 +4,8 @@
 
 #include <stddef.h>
 
+#include <TargetConditionals.h>
+
 
 // Which platform we are on?
 // UNITY_WIN - Windows (regular win32)
@@ -51,7 +53,7 @@
 	#define SUPPORT_OPENGL_UNIFIED 1
 	#define SUPPORT_OPENGL_CORE 1
 	#define SUPPORT_VULKAN 0 // Requires Vulkan SDK to be installed
-#elif UNITY_IOS || UNITY_TVOS || UNITY_ANDROID || UNITY_WEBGL
+#elif UNITY_ANDROID || UNITY_WEBGL
 	#ifndef SUPPORT_OPENGL_ES
 		#define SUPPORT_OPENGL_ES 1
 	#endif
@@ -59,7 +61,7 @@
 	#ifndef SUPPORT_VULKAN
 		#define SUPPORT_VULKAN 0
 	#endif
-#elif UNITY_OSX || UNITY_LINUX
+#elif UNITY_LINUX
 	#define SUPPORT_OPENGL_UNIFIED 1
 	#define SUPPORT_OPENGL_CORE 1
 #elif UNITY_EMBEDDED_LINUX
