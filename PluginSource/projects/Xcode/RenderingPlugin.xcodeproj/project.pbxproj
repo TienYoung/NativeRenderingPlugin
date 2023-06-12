@@ -7,14 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		228159DB2A37479300460DF1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22A18C652A36C0C7009ADED0 /* Foundation.framework */; };
 		22983C902A36CEF7005E3260 /* RenderAPI_Metal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B6899CA1CF8409A00C4BA4F /* RenderAPI_Metal.cpp */; };
-		22A18C662A36C0C7009ADED0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22A18C652A36C0C7009ADED0 /* Foundation.framework */; };
-		22A18C682A36C0E2009ADED0 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22A18C672A36C0E2009ADED0 /* QuartzCore.framework */; };
 		22A18C6A2A36C0E8009ADED0 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22A18C692A36C0E8009ADED0 /* Metal.framework */; };
 		2B6899B91CF8396700C4BA4F /* RenderAPI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B6899B11CF8396700C4BA4F /* RenderAPI.cpp */; };
 		2B6899BA1CF8396700C4BA4F /* RenderingPlugin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B6899B31CF8396700C4BA4F /* RenderingPlugin.cpp */; };
 		2B6899C91CF83DB000C4BA4F /* RenderingPlugin.bundle in Copy Bundle into Unity project */ = {isa = PBXBuildFile; fileRef = 8D576316048677EA00EA77CD /* RenderingPlugin.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		8D576314048677EA00EA77CD /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0AA1909FFE8422F4C02AAC07 /* CoreFoundation.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -33,6 +31,7 @@
 
 /* Begin PBXFileReference section */
 		0AA1909FFE8422F4C02AAC07 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
+		228159D92A37478200460DF1 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		22A18C652A36C0C7009ADED0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		22A18C672A36C0E2009ADED0 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		22A18C692A36C0E8009ADED0 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
@@ -60,10 +59,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				228159DB2A37479300460DF1 /* Foundation.framework in Frameworks */,
 				22A18C6A2A36C0E8009ADED0 /* Metal.framework in Frameworks */,
-				22A18C682A36C0E2009ADED0 /* QuartzCore.framework in Frameworks */,
-				22A18C662A36C0C7009ADED0 /* Foundation.framework in Frameworks */,
-				8D576314048677EA00EA77CD /* CoreFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -126,6 +123,7 @@
 		22A18C642A36C0C7009ADED0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				228159D92A37478200460DF1 /* CoreFoundation.framework */,
 				22A18C692A36C0E8009ADED0 /* Metal.framework */,
 				22A18C672A36C0E2009ADED0 /* QuartzCore.framework */,
 				22A18C652A36C0C7009ADED0 /* Foundation.framework */,

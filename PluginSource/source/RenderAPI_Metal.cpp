@@ -10,11 +10,8 @@
 
 #include "Unity/IUnityGraphicsMetal.h"
 #define NS_PRIVATE_IMPLEMENTATION
-#define CA_PRIVATE_IMPLEMENTATION
 #define MTL_PRIVATE_IMPLEMENTATION
-#include <Foundation/Foundation.hpp>
 #include <Metal/Metal.hpp>
-#include <QuartzCore/QuartzCore.hpp>
 
 
 class RenderAPI_Metal : public RenderAPI
@@ -99,15 +96,15 @@ void RenderAPI_Metal::CreateResources()
 	// Create shaders
 	NS::String* srcStr = NS::String::alloc()->init(kShaderSource, NS::ASCIIStringEncoding);
 	MTL::Library* shaderLibrary = metalDevice->newLibrary(srcStr, nullptr, &error);
-	if(error != nil)
+	if(error != nullptr)
 	{
-		NS::String* desc		= error->localizedDescription();
-		NS::String* reason	= error->localizedFailureReason();
+		NS::String* desc   = error->localizedDescription();
+		NS::String* reason = error->localizedFailureReason();
 		::fprintf(stderr, "%s\n%s\n\n", desc ? desc->utf8String() : "<unknown>", reason ? reason->utf8String() : "");
 	}
 
-	MTL::Function* vertexFunction = shaderLibrary->newFunction(NS::String::alloc()->init("vertexMain", NS::ASCIIStringEncoding));
-	MTL::Function* fragmentFunction = shaderLibrary->newFunction(NS::String::alloc()->init("fragmentMain", NS::ASCIIStringEncoding));
+	MTL::Function* vertexFunction = shaderLibrary->newFunction(MTLSTR("vertexMain"));
+	MTL::Function* fragmentFunction = shaderLibrary->newFunction(MTLSTR("fragmentMain"));
 
 
 	// Vertex / Constant buffers
@@ -119,9 +116,9 @@ void RenderAPI_Metal::CreateResources()
 #	endif
 
 	m_VertexBuffer = metalDevice->newBuffer(1024, bufferOptions);
-	m_VertexBuffer->setLabel(NS::String::alloc()->init("PluginVB", NS::ASCIIStringEncoding));
+	m_VertexBuffer->setLabel(MTLSTR("PluginVB"));
 	m_ConstantBuffer = metalDevice->newBuffer(16*sizeof(float), bufferOptions);
-    m_ConstantBuffer->setLabel(NS::String::alloc()->init("PluginCB", NS::ASCIIStringEncoding));
+    m_ConstantBuffer->setLabel(MTLSTR("PluginCB"));
 
 	// Vertex layout
 	MTL::VertexDescriptor* vertexDesc = MTL::VertexDescriptor::vertexDescriptor();
@@ -137,7 +134,7 @@ void RenderAPI_Metal::CreateResources()
 
 	// Pipeline
 
-	MTL::RenderPipelineDescriptor* pipeDesc = MTL::RenderPipelineDescriptor::alloc()->init();
+	NS::SharedPtr<MTL::RenderPipelineDescriptor> pipeDesc = NS::TransferPtr(MTL::RenderPipelineDescriptor::alloc()->init());
 	// Let's assume we're rendering into BGRA8Unorm...
 	pipeDesc->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormatBGRA8Unorm);
 
@@ -151,7 +148,7 @@ void RenderAPI_Metal::CreateResources()
 	pipeDesc->setFragmentFunction(fragmentFunction);
 	pipeDesc->setVertexDescriptor(vertexDesc);
 
-	m_Pipeline = metalDevice->newRenderPipelineState(pipeDesc, &error);
+	m_Pipeline = metalDevice->newRenderPipelineState(pipeDesc.get(), &error);
 	if (error != nullptr)
 	{
 		::fprintf(stderr, "Metal: Error creating pipeline state: %s\n%s\n", error->localizedDescription()->utf8String(), error->localizedFailureReason()->utf8String());
@@ -159,10 +156,10 @@ void RenderAPI_Metal::CreateResources()
 	}
 
 	// Depth/Stencil state
-	MTL::DepthStencilDescriptor* depthDesc = MTL::DepthStencilDescriptor::alloc()->init();
+	NS::SharedPtr<MTL::DepthStencilDescriptor> depthDesc = NS::TransferPtr(MTL::DepthStencilDescriptor::alloc()->init());
     depthDesc->setDepthCompareFunction(GetUsesReverseZ() ? MTL::CompareFunctionGreaterEqual : MTL::CompareFunctionLessEqual);
 	depthDesc->setDepthWriteEnabled(false);
-	m_DepthStencil = metalDevice->newDepthStencilState(depthDesc);
+	m_DepthStencil = metalDevice->newDepthStencilState(depthDesc.get());
 }
 
 
