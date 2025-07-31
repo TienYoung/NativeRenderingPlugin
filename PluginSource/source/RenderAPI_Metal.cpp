@@ -25,6 +25,8 @@ public:
 	virtual bool GetUsesReverseZ() { return true; }
 
 	virtual void DrawSimpleTriangles(const float worldMatrix[16], int triangleCount, const void* verticesFloat3Byte4);
+    
+    virtual void DrawMesh(const float worldMatrix[16], void* positionBuffer, void* colorBuffer, int count);
 
 	virtual void* BeginModifyTexture(void* textureHandle, int textureWidth, int textureHeight, int* outRowPitch);
 	virtual void EndModifyTexture(void* textureHandle, int textureWidth, int textureHeight, int rowPitch, void* dataPtr);
@@ -37,11 +39,14 @@ private:
 
 private:
 	IUnityGraphicsMetal*	m_MetalGraphics;
-	MTL::Buffer*			m_VertexBuffer;
+    MTL::Buffer*            m_VertexBuffer;
+    MTL::Buffer*            m_PositionBuffer;
+	MTL::Buffer*			m_ColorBuffer;
 	MTL::Buffer*			m_ConstantBuffer;
 
-	MTL::DepthStencilState* m_DepthStencil;
-	MTL::RenderPipelineState*	m_Pipeline;
+	MTL::DepthStencilState*   m_DepthStencil;
+    MTL::RenderPipelineState* m_Pipeline;
+	MTL::RenderPipelineState* m_MeshPipeline;
 };
 
 
@@ -86,6 +91,52 @@ static const char kShaderSource[] =
 "    return out;\n"
 "}\n";
 
+static const char kMeshShaderSource[] = R"(
+#include <metal_stdlib>
+using namespace metal;
+
+struct VertexData
+{
+    float4 position [[position]];
+    float4 color; 
+};
+
+struct PrimitiveData 
+{
+};
+
+using triangle_mesh_t = metal::mesh<VertexData, PrimitiveData, 3, 1, metal::topology::triangle>;
+
+struct AppData
+{
+    float4x4 worldMatrix;
+};
+
+struct FragmentData
+{
+    VertexData vert;
+    PrimitiveData prim;
+};
+
+[[mesh]]
+void meshMain(triangle_mesh_t outputMesh, constant AppData& my_cb [[buffer(0)]], constant float4* position [[buffer(1)]], constant float4* color [[buffer(2)]])
+{
+    outputMesh.set_vertex(0, VertexData{my_cb.worldMatrix * position[0], color[0]});
+    outputMesh.set_index(0, 0);
+    outputMesh.set_vertex(1, VertexData{my_cb.worldMatrix * position[1], color[1]});
+    outputMesh.set_index(1, 1);
+    outputMesh.set_vertex(2, VertexData{my_cb.worldMatrix * position[2], color[2]});
+    outputMesh.set_index(2, 2);
+    outputMesh.set_primitive(0, PrimitiveData{});
+    outputMesh.set_primitive_count(1);
+}
+
+[[fragment]]
+float4 fragmentMain(FragmentData input [[stage_in]])
+{
+    return input.vert.color;
+};
+)";
 
 
 void RenderAPI_Metal::CreateResources()
@@ -106,7 +157,21 @@ void RenderAPI_Metal::CreateResources()
 	MTL::Function* vertexFunction = shaderLibrary->newFunction(MTLSTR("vertexMain"));
 	MTL::Function* fragmentFunction = shaderLibrary->newFunction(MTLSTR("fragmentMain"));
 
+    // Create mesh shader
+    srcStr = NS::String::alloc()->init(kMeshShaderSource, NS::ASCIIStringEncoding);
+    MTL::Library* meshShaderLibrary = metalDevice->newLibrary(srcStr, nullptr, &error);
+    if(error != nullptr)
+    {
+        NS::String* desc   = error->localizedDescription();
+        NS::String* reason = error->localizedFailureReason();
+        ::fprintf(stderr, "Desc: %s\nReason: %s\n\n", desc ? desc->utf8String() : "<unknown>", reason ? reason->utf8String() : "");
+    }
+    MTL::Function* meshFunction = meshShaderLibrary->newFunction(MTLSTR("meshMain"));
+    MTL::Function* meshFragmentFunction = meshShaderLibrary->newFunction(MTLSTR("fragmentMain"));
 
+    ::printf("MeshFunction %p", meshFunction);
+    ::printf("Fragment Function %p", meshFragmentFunction);
+    
 	// Vertex / Constant buffers
 
 #	if UNITY_OSX
@@ -117,6 +182,10 @@ void RenderAPI_Metal::CreateResources()
 
 	m_VertexBuffer = metalDevice->newBuffer(1024, bufferOptions);
 	m_VertexBuffer->setLabel(MTLSTR("PluginVB"));
+    m_PositionBuffer = metalDevice->newBuffer(1024, bufferOptions);
+    m_PositionBuffer->setLabel(MTLSTR("PluginPB"));
+    m_ColorBuffer = metalDevice->newBuffer(1024, bufferOptions);
+    m_ColorBuffer->setLabel(MTLSTR("PluginColorB"));
 	m_ConstantBuffer = metalDevice->newBuffer(16*sizeof(float), bufferOptions);
     m_ConstantBuffer->setLabel(MTLSTR("PluginCB"));
 
@@ -160,6 +229,34 @@ void RenderAPI_Metal::CreateResources()
     depthDesc->setDepthCompareFunction(GetUsesReverseZ() ? MTL::CompareFunctionGreaterEqual : MTL::CompareFunctionLessEqual);
 	depthDesc->setDepthWriteEnabled(false);
 	m_DepthStencil = metalDevice->newDepthStencilState(depthDesc.get());
+    
+    // Mesh shader pipeline
+    NS::SharedPtr<MTL::MeshRenderPipelineDescriptor> meshDesc = NS::TransferPtr(MTL::MeshRenderPipelineDescriptor::alloc()->init());
+    meshDesc->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormatBGRA8Unorm);
+    
+    meshDesc->setDepthAttachmentPixelFormat(MTL::PixelFormatDepth32Float_Stencil8);
+    meshDesc->setStencilAttachmentPixelFormat(MTL::PixelFormatDepth32Float_Stencil8);
+    
+    meshDesc->setRasterSampleCount(1);
+    meshDesc->colorAttachments()->object(0)->setBlendingEnabled(true);
+    meshDesc->setMeshFunction(meshFunction);
+    meshDesc->setFragmentFunction(meshFragmentFunction);
+    
+    MTL::AutoreleasedRenderPipelineReflection reflection = nullptr; // MTL::RenderPipelineReflection::alloc()->init();
+    try
+    {
+        m_MeshPipeline = metalDevice->newRenderPipelineState(meshDesc.get(), MTL::PipelineOptionNone, &reflection, &error);
+    }
+    catch (std::exception& ex)
+    {
+        ::fprintf(stderr, "%s", ex.what());
+    }
+    
+    if (error != nullptr)
+    {
+        ::fprintf(stderr, "Metal: Error creating pipeline state: %s\n%s\n", error->localizedDescription()->utf8String(), error->localizedFailureReason()->utf8String());
+        error = nullptr;
+    }
 }
 
 
@@ -212,6 +309,35 @@ void RenderAPI_Metal::DrawSimpleTriangles(const float worldMatrix[16], int trian
 
 	// Draw
 	cmd->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0), triangleCount*3);
+}
+
+void RenderAPI_Metal::DrawMesh(const float worldMatrix[16], void* positionBuffer, void* colorBuffer, int count)
+{
+    const int pbSize = 3 * 16;
+    const int colorbSize = 3 * 16;
+    const int cbSize = 16 * sizeof(float);
+    
+    ::memcpy(m_ConstantBuffer->contents(), worldMatrix, cbSize);
+    ::memcpy(m_PositionBuffer->contents(), positionBuffer, pbSize);
+    ::memcpy(m_ColorBuffer->contents(), colorBuffer, colorbSize);
+    
+#if UNITY_OSX
+    m_PositionBuffer->didModifyRange(NS::Range(0, pbSize));
+    m_ColorBuffer->didModifyRange(NS::Range(0, colorbSize));
+    m_ConstantBuffer->didModifyRange(NS::Range(0, cbSize));
+#endif
+    
+    MTL::RenderCommandEncoder* cmd = (MTL::RenderCommandEncoder*)m_MetalGraphics->CurrentCommandEncoder();
+    
+    cmd->setRenderPipelineState(m_MeshPipeline);
+    cmd->setDepthStencilState(m_DepthStencil);
+    cmd->setCullMode(MTL::CullModeNone);
+    
+    cmd->setMeshBuffer(m_ConstantBuffer, 0, 0);
+    cmd->setMeshBuffer(m_PositionBuffer, 0, 1);
+    cmd->setMeshBuffer(m_ColorBuffer, 0, 2);
+    
+    cmd->drawMeshThreads(MTL::Size(1, 1, 1), MTL::Size(1, 1, 1), MTL::Size(1, 1, 1));
 }
 
 

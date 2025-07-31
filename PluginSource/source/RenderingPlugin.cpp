@@ -7,6 +7,8 @@
 #include <math.h>
 #include <vector>
 
+#include <simd/simd.h>
+
 
 // --------------------------------------------------------------------------
 // SetTimeFromUnity, an example function we export which is called by one of the scripts.
@@ -199,6 +201,23 @@ static void DrawColoredTriangle()
 	};
 
 	s_CurrentAPI->DrawSimpleTriangles(worldMatrix, 1, verts);
+    
+    simd_float4 positions[3] =
+    {
+        simd_make_float4( -0.5f, -0.25f,  0, 1.0f),
+        simd_make_float4( 0.5f, -0.25f,  0, 1.0f),
+        simd_make_float4( 0,     0.5f ,  0, 1.0f),
+    };
+    
+    simd_float4 colors[3] =
+    {
+        simd_make_float4( 0, 0,  1.0f, 1.0f),
+        simd_make_float4( 0, 1.0f,  0, 1.0f),
+        simd_make_float4( 1.0f, 0,  0, 1.0f),
+    };
+    
+    
+    s_CurrentAPI->DrawMesh(worldMatrix, positions, colors, 3);
 }
 
 

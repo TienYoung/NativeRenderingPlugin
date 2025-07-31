@@ -1,9 +1,6 @@
 #pragma once
 #include "IUnityInterface.h"
 
-//#ifndef __OBJC__
-//    #error metal plugin is objc code.
-//#endif
 #ifndef __clang__
     #error only clang compiler is supported.
 #endif

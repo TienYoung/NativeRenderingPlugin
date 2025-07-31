@@ -2,7 +2,7 @@
 //
 // Metal/MTLRenderPipeline.hpp
 //
-// Copyright 2020-2023 Apple Inc.
+// Copyright 2020-2024 Apple Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
 
 #include <Foundation/Foundation.hpp>
 
+#include "MTLPipeline.hpp"
 #include "MTLPixelFormat.hpp"
 #include "MTLRenderCommandEncoder.hpp"
 #include "MTLRenderPipeline.hpp"
@@ -65,10 +66,10 @@ _MTL_ENUM(NS::UInteger, BlendOperation) {
 
 _MTL_OPTIONS(NS::UInteger, ColorWriteMask) {
     ColorWriteMaskNone = 0,
-    ColorWriteMaskAlpha = 1,
-    ColorWriteMaskBlue = 2,
-    ColorWriteMaskGreen = 4,
     ColorWriteMaskRed = 8,
+    ColorWriteMaskGreen = 4,
+    ColorWriteMaskBlue = 2,
+    ColorWriteMaskAlpha = 1,
     ColorWriteMaskAll = 15,
 };
 
@@ -266,6 +267,9 @@ public:
     void                                                setMaxFragmentCallStackDepth(NS::UInteger maxFragmentCallStackDepth);
 
     void                                                reset();
+
+    MTL::ShaderValidation                               shaderValidation() const;
+    void                                                setShaderValidation(MTL::ShaderValidation shaderValidation);
 };
 
 class RenderPipelineFunctionsDescriptor : public NS::Copying<RenderPipelineFunctionsDescriptor>
@@ -321,6 +325,8 @@ public:
     class IntersectionFunctionTable* newIntersectionFunctionTable(const class IntersectionFunctionTableDescriptor* descriptor, MTL::RenderStages stage);
 
     class RenderPipelineState*       newRenderPipelineState(const class RenderPipelineFunctionsDescriptor* additionalBinaryFunctions, NS::Error** error);
+
+    MTL::ShaderValidation            shaderValidation() const;
 };
 
 class RenderPipelineColorAttachmentDescriptorArray : public NS::Referencing<RenderPipelineColorAttachmentDescriptorArray>
@@ -400,6 +406,9 @@ public:
     void                                                    setMaxCallStackDepth(NS::UInteger maxCallStackDepth);
 
     void                                                    reset();
+
+    MTL::ShaderValidation                                   shaderValidation() const;
+    void                                                    setShaderValidation(MTL::ShaderValidation shaderValidation);
 };
 
 class MeshRenderPipelineDescriptor : public NS::Copying<MeshRenderPipelineDescriptor>
@@ -468,7 +477,25 @@ public:
     MTL::PixelFormat                                    stencilAttachmentPixelFormat() const;
     void                                                setStencilAttachmentPixelFormat(MTL::PixelFormat stencilAttachmentPixelFormat);
 
+    bool                                                supportIndirectCommandBuffers() const;
+    void                                                setSupportIndirectCommandBuffers(bool supportIndirectCommandBuffers);
+
+    NS::Array*                                          binaryArchives() const;
+    void                                                setBinaryArchives(const NS::Array* binaryArchives);
+
+    class LinkedFunctions*                              objectLinkedFunctions() const;
+    void                                                setObjectLinkedFunctions(const class LinkedFunctions* objectLinkedFunctions);
+
+    class LinkedFunctions*                              meshLinkedFunctions() const;
+    void                                                setMeshLinkedFunctions(const class LinkedFunctions* meshLinkedFunctions);
+
+    class LinkedFunctions*                              fragmentLinkedFunctions() const;
+    void                                                setFragmentLinkedFunctions(const class LinkedFunctions* fragmentLinkedFunctions);
+
     void                                                reset();
+
+    MTL::ShaderValidation                               shaderValidation() const;
+    void                                                setShaderValidation(MTL::ShaderValidation shaderValidation);
 };
 
 }
@@ -1010,6 +1037,17 @@ _MTL_INLINE void MTL::RenderPipelineDescriptor::reset()
     Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(reset));
 }
 
+// property: shaderValidation
+_MTL_INLINE MTL::ShaderValidation MTL::RenderPipelineDescriptor::shaderValidation() const
+{
+    return Object::sendMessage<MTL::ShaderValidation>(this, _MTL_PRIVATE_SEL(shaderValidation));
+}
+
+_MTL_INLINE void MTL::RenderPipelineDescriptor::setShaderValidation(MTL::ShaderValidation shaderValidation)
+{
+    Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setShaderValidation_), shaderValidation);
+}
+
 // static method: alloc
 _MTL_INLINE MTL::RenderPipelineFunctionsDescriptor* MTL::RenderPipelineFunctionsDescriptor::alloc()
 {
@@ -1155,6 +1193,12 @@ _MTL_INLINE MTL::IntersectionFunctionTable* MTL::RenderPipelineState::newInterse
 _MTL_INLINE MTL::RenderPipelineState* MTL::RenderPipelineState::newRenderPipelineState(const MTL::RenderPipelineFunctionsDescriptor* additionalBinaryFunctions, NS::Error** error)
 {
     return Object::sendMessage<MTL::RenderPipelineState*>(this, _MTL_PRIVATE_SEL(newRenderPipelineStateWithAdditionalBinaryFunctions_error_), additionalBinaryFunctions, error);
+}
+
+// property: shaderValidation
+_MTL_INLINE MTL::ShaderValidation MTL::RenderPipelineState::shaderValidation() const
+{
+    return Object::sendMessage<MTL::ShaderValidation>(this, _MTL_PRIVATE_SEL(shaderValidation));
 }
 
 // static method: alloc
@@ -1366,6 +1410,17 @@ _MTL_INLINE void MTL::TileRenderPipelineDescriptor::setMaxCallStackDepth(NS::UIn
 _MTL_INLINE void MTL::TileRenderPipelineDescriptor::reset()
 {
     Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(reset));
+}
+
+// property: shaderValidation
+_MTL_INLINE MTL::ShaderValidation MTL::TileRenderPipelineDescriptor::shaderValidation() const
+{
+    return Object::sendMessage<MTL::ShaderValidation>(this, _MTL_PRIVATE_SEL(shaderValidation));
+}
+
+_MTL_INLINE void MTL::TileRenderPipelineDescriptor::setShaderValidation(MTL::ShaderValidation shaderValidation)
+{
+    Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setShaderValidation_), shaderValidation);
 }
 
 // static method: alloc
@@ -1591,8 +1646,74 @@ _MTL_INLINE void MTL::MeshRenderPipelineDescriptor::setStencilAttachmentPixelFor
     Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setStencilAttachmentPixelFormat_), stencilAttachmentPixelFormat);
 }
 
+// property: supportIndirectCommandBuffers
+_MTL_INLINE bool MTL::MeshRenderPipelineDescriptor::supportIndirectCommandBuffers() const
+{
+    return Object::sendMessageSafe<bool>(this, _MTL_PRIVATE_SEL(supportIndirectCommandBuffers));
+}
+
+_MTL_INLINE void MTL::MeshRenderPipelineDescriptor::setSupportIndirectCommandBuffers(bool supportIndirectCommandBuffers)
+{
+    Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setSupportIndirectCommandBuffers_), supportIndirectCommandBuffers);
+}
+
+// property: binaryArchives
+_MTL_INLINE NS::Array* MTL::MeshRenderPipelineDescriptor::binaryArchives() const
+{
+    return Object::sendMessage<NS::Array*>(this, _MTL_PRIVATE_SEL(binaryArchives));
+}
+
+_MTL_INLINE void MTL::MeshRenderPipelineDescriptor::setBinaryArchives(const NS::Array* binaryArchives)
+{
+    Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setBinaryArchives_), binaryArchives);
+}
+
+// property: objectLinkedFunctions
+_MTL_INLINE MTL::LinkedFunctions* MTL::MeshRenderPipelineDescriptor::objectLinkedFunctions() const
+{
+    return Object::sendMessage<MTL::LinkedFunctions*>(this, _MTL_PRIVATE_SEL(objectLinkedFunctions));
+}
+
+_MTL_INLINE void MTL::MeshRenderPipelineDescriptor::setObjectLinkedFunctions(const MTL::LinkedFunctions* objectLinkedFunctions)
+{
+    Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setObjectLinkedFunctions_), objectLinkedFunctions);
+}
+
+// property: meshLinkedFunctions
+_MTL_INLINE MTL::LinkedFunctions* MTL::MeshRenderPipelineDescriptor::meshLinkedFunctions() const
+{
+    return Object::sendMessage<MTL::LinkedFunctions*>(this, _MTL_PRIVATE_SEL(meshLinkedFunctions));
+}
+
+_MTL_INLINE void MTL::MeshRenderPipelineDescriptor::setMeshLinkedFunctions(const MTL::LinkedFunctions* meshLinkedFunctions)
+{
+    Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setMeshLinkedFunctions_), meshLinkedFunctions);
+}
+
+// property: fragmentLinkedFunctions
+_MTL_INLINE MTL::LinkedFunctions* MTL::MeshRenderPipelineDescriptor::fragmentLinkedFunctions() const
+{
+    return Object::sendMessage<MTL::LinkedFunctions*>(this, _MTL_PRIVATE_SEL(fragmentLinkedFunctions));
+}
+
+_MTL_INLINE void MTL::MeshRenderPipelineDescriptor::setFragmentLinkedFunctions(const MTL::LinkedFunctions* fragmentLinkedFunctions)
+{
+    Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setFragmentLinkedFunctions_), fragmentLinkedFunctions);
+}
+
 // method: reset
 _MTL_INLINE void MTL::MeshRenderPipelineDescriptor::reset()
 {
     Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(reset));
+}
+
+// property: shaderValidation
+_MTL_INLINE MTL::ShaderValidation MTL::MeshRenderPipelineDescriptor::shaderValidation() const
+{
+    return Object::sendMessage<MTL::ShaderValidation>(this, _MTL_PRIVATE_SEL(shaderValidation));
+}
+
+_MTL_INLINE void MTL::MeshRenderPipelineDescriptor::setShaderValidation(MTL::ShaderValidation shaderValidation)
+{
+    Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setShaderValidation_), shaderValidation);
 }

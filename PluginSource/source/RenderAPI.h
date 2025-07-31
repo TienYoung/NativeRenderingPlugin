@@ -32,6 +32,7 @@ public:
 	// float3 (position) and byte4 (color) per vertex.
 	virtual void DrawSimpleTriangles(const float worldMatrix[16], int triangleCount, const void* verticesFloat3Byte4) = 0;
 
+    virtual void DrawMesh(const float worldMatrix[16], void* positionBuffer, void* colorBuffer, int count) = 0;
 
 	// Begin modifying texture data. You need to pass texture width/height too, since some graphics APIs
 	// (e.g. OpenGL ES) do not have a good way to query that from the texture itself...
